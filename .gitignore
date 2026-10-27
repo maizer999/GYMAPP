@@ -33,8 +33,23 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
+/build
 /build/
+/build.nosync
+/build.nosync/
 /coverage/
+
+# iCloud-sync escape: symlinks + .nosync directories keep gradle/flutter
+# build caches outside the iCloud-synced tree so AGP doesn't see " 2.png"
+# duplicates. Ignore both the symlink and the real .nosync target.
+*.nosync
+*.nosync/
+/android/.gradle
+/android/.gradle/
+/android/.gradle.nosync
+/android/.gradle.nosync/
+/android/app/build
+/android/app/build/
 
 # Symbolication related
 app.*.symbols

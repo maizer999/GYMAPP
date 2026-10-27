@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 import 'core/constants/app_theme.dart';
 import 'core/database/database_service.dart';
 import 'features/dashboard/dashboard_page.dart';
-import 'features/history/history_page.dart';
+import 'features/gym/gym_page.dart';
 import 'features/milestones/milestones_page.dart';
 import 'features/settings/settings_page.dart';
 import 'features/splash/splash_page.dart';
@@ -13,6 +15,13 @@ import 'features/splash/splash_page.dart';
 Future<void> main() async {
   final binding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: binding);
+
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+
+  await initializeDateFormatting('ar');
 
   final isar = await DatabaseService.open();
 
@@ -69,7 +78,7 @@ class _HomeShellState extends State<_HomeShell> {
 
   static const _pages = <Widget>[
     DashboardPage(),
-    HistoryPage(),
+    GymPage(),
     MilestonesPage(),
     SettingsPage(),
   ];
@@ -88,9 +97,9 @@ class _HomeShellState extends State<_HomeShell> {
             label: 'Today',
           ),
           NavigationDestination(
-            icon: Icon(Icons.bar_chart_outlined),
-            selectedIcon: Icon(Icons.bar_chart),
-            label: 'History',
+            icon: Icon(Icons.fitness_center_outlined),
+            selectedIcon: Icon(Icons.fitness_center),
+            label: 'Gym',
           ),
           NavigationDestination(
             icon: Icon(Icons.emoji_events_outlined),

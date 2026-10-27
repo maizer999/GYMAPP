@@ -104,4 +104,4 @@ sensor stream.
   unlocked next time the Milestones tab is opened.
 - `HealthService` syncs *from* HealthKit/Health Connect for display
   context, but the app doesn't write its own data back to either.
-- No tests written yet.
+- No tests written yet.written≥≥≥≥≥≥written≥≥≥≥≥≥≥≥≥≥≥≥tests≥≥≥≥≥≥≥≥≥tests≥≥yet≥yet≥to≥back

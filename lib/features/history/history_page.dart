@@ -1,59 +1,169 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/defaults.dart';
+import 'day_detail_page.dart';
 import 'history_controller.dart';
 
-class HistoryPage extends StatefulWidget {
+class HistoryPage extends ConsumerWidget {
   const HistoryPage({super.key});
 
   @override
-  State<HistoryPage> createState() => _HistoryPageState();
+  Widget build(BuildContext context, WidgetRef ref) {
+    final daysAsync = ref.watch(recentDaysProvider);
+
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text(
+          'History',
+          style: TextStyle(fontWeight: FontWeight.w700),
+        ),
+      ),
+      body: SafeArea(
+        child: daysAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, _) => Center(child: Text('خطأ في تحميل السجل: $err')),
+          data: (days) {
+            if (days.every((d) => d.steps == 0)) {
+              return const _EmptyState();
+            }
+            final last7 = days.take(7).toList();
+            final weekTotal = last7.fold<int>(0, (a, b) => a + b.steps);
+            final weekAverage =
+                last7.isEmpty ? 0 : (weekTotal / last7.length).round();
+
+            return ListView(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+              children: [
+                _SummaryCard(total: weekTotal, average: weekAverage),
+                const SizedBox(height: 20),
+                const Padding(
+                  padding: EdgeInsets.only(right: 4, bottom: 10),
+                  child: Text(
+                    'الأيام السابقة',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                for (final day in days) ...[
+                  _DayCard(
+                    day: day,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => DayDetailPage(day: day),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
 }
 
-class _HistoryPageState extends State<HistoryPage>
-    with SingleTickerProviderStateMixin {
-  late final TabController _tabController =
-      TabController(length: 2, vsync: this);
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({required this.total, required this.average});
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+  final int total;
+  final int average;
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-            child: Text(
-              'History',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [AppColors.cyan, AppColors.greenSoft],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.cyan.withOpacity(0.25),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
-          TabBar(
-            controller: _tabController,
-            labelColor: AppColors.primary,
-            unselectedLabelColor: AppColors.textSecondary,
-            indicatorColor: AppColors.primary,
-            tabs: const [
-              Tab(text: 'Weekly'),
-              Tab(text: 'Monthly'),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.calendar_month_rounded,
+                  color: Colors.white, size: 18),
+              SizedBox(width: 8),
+              Text(
+                'آخر ٧ أيام',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                NumberFormat.decimalPattern('ar').format(total),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 36,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Padding(
+                padding: EdgeInsets.only(bottom: 4),
+                child: Text(
+                  'خطوة',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.18),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                _HistoryChart(provider: weeklyHistoryProvider, dateFormat: 'E'),
-                _HistoryChart(provider: monthlyHistoryProvider, dateFormat: 'd'),
+                const Icon(Icons.trending_up_rounded,
+                    color: Colors.white, size: 14),
+                const SizedBox(width: 6),
+                Text(
+                  'المتوسط اليومي: ${NumberFormat.decimalPattern('ar').format(average)}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
@@ -63,96 +173,176 @@ class _HistoryPageState extends State<HistoryPage>
   }
 }
 
-class _HistoryChart extends ConsumerWidget {
-  const _HistoryChart({required this.provider, required this.dateFormat});
+class _DayCard extends StatelessWidget {
+  const _DayCard({required this.day, required this.onTap});
 
-  final ProviderListenable<AsyncValue<List<HistoryPoint>>> provider;
-  final String dateFormat;
+  final HistoryDay day;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final pointsAsync = ref.watch(provider);
+  Widget build(BuildContext context) {
+    final progress = (day.steps / Defaults.dailyStepGoal).clamp(0.0, 1.0);
+    final isToday = DateUtils.isSameDay(day.date, DateTime.now());
+    final yesterday = DateTime.now().subtract(const Duration(days: 1));
+    final isYesterday = DateUtils.isSameDay(day.date, yesterday);
 
-    return pointsAsync.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (err, _) => Center(child: Text('Could not load history: $err')),
-      data: (points) {
-        if (points.every((p) => p.steps == 0)) {
-          return const Center(
-            child: Text(
-              'No steps recorded yet for this period.',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-          );
-        }
+    final weekdayAr = _arabicWeekday(day.date.weekday);
+    final primaryLabel = isToday
+        ? 'اليوم'
+        : isYesterday
+            ? 'الأمس'
+            : weekdayAr;
+    final secondaryLabel = DateFormat('d MMM', 'ar').format(day.date);
 
-        final maxValue = points
-            .map((p) => p.steps)
-            .fold<int>(0, (a, b) => a > b ? a : b)
-            .toDouble();
-        final formatter = DateFormat(dateFormat);
-        // Skip some labels on the monthly (30-bar) view so they don't
-        // overlap — weekly (7 bars) can show every label.
-        final labelStride = points.length > 10 ? 5 : 1;
-
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-          child: BarChart(
-            BarChartData(
-              maxY: maxValue == 0 ? 10 : maxValue * 1.2,
-              gridData: const FlGridData(show: false),
-              borderData: FlBorderData(show: false),
-              titlesData: FlTitlesData(
-                leftTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                rightTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                topTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
-                ),
-                bottomTitles: AxisTitles(
-                  sideTitles: SideTitles(
-                    showTitles: true,
-                    reservedSize: 28,
-                    getTitlesWidget: (value, meta) {
-                      final index = value.toInt();
-                      if (index % labelStride != 0 || index >= points.length) {
-                        return const SizedBox.shrink();
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Text(
-                          formatter.format(points[index].date),
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: AppColors.textSecondary,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-              barGroups: [
-                for (var i = 0; i < points.length; i++)
-                  BarChartGroupData(
-                    x: i,
-                    barRods: [
-                      BarChartRodData(
-                        toY: points[i].steps.toDouble(),
-                        color: AppColors.stepsColor,
-                        width: points.length > 10 ? 6 : 14,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                    ],
-                  ),
-              ],
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: isToday
+                  ? AppColors.greenSoft.withOpacity(0.5)
+                  : Colors.white.withOpacity(0.04),
+              width: isToday ? 1.4 : 1,
             ),
           ),
-        );
-      },
+          child: Row(
+            children: [
+              SizedBox(
+                width: 42,
+                height: 42,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    SizedBox(
+                      width: 42,
+                      height: 42,
+                      child: CircularProgressIndicator(
+                        value: progress,
+                        strokeWidth: 4,
+                        backgroundColor: AppColors.ringTrack,
+                        valueColor: const AlwaysStoppedAnimation(
+                            AppColors.greenSoft),
+                      ),
+                    ),
+                    Text(
+                      '${(progress * 100).round()}%',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        color: AppColors.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      primaryLabel,
+                      style: const TextStyle(
+                        color: AppColors.textPrimary,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      secondaryLabel,
+                      style: const TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    NumberFormat.decimalPattern('ar').format(day.steps),
+                    style: const TextStyle(
+                      color: AppColors.textPrimary,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const Text(
+                    'خطوة',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(width: 6),
+              const Icon(Icons.chevron_left_rounded,
+                  color: AppColors.textSecondary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String _arabicWeekday(int weekday) {
+  const names = [
+    'الاثنين',
+    'الثلاثاء',
+    'الأربعاء',
+    'الخميس',
+    'الجمعة',
+    'السبت',
+    'الأحد',
+  ];
+  return names[weekday - 1];
+}
+
+class _EmptyState extends StatelessWidget {
+  const _EmptyState();
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.history_rounded,
+              size: 56,
+              color: AppColors.textSecondary.withOpacity(0.5),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'لا يوجد سجل بعد',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            const Text(
+              'ابدأ المشي اليوم وستظهر خطواتك هنا',
+              style: TextStyle(color: AppColors.textSecondary),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

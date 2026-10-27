@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/utils/health_calculations.dart';
+import '../history/history_page.dart';
 import 'dashboard_controller.dart';
 import 'widgets/clock_card.dart';
 import 'widgets/hourly_chart.dart';
@@ -87,7 +88,89 @@ class DashboardPage extends ConsumerWidget {
             height: 180,
             child: HourlyChart(hourlySteps: state.hourlySteps),
           ),
+          const SizedBox(height: 28),
+          _HistoryButton(
+            onTap: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const HistoryPage()),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _HistoryButton extends StatelessWidget {
+  const _HistoryButton({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(18),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [AppColors.cyan, AppColors.greenSoft],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.cyan.withOpacity(0.3),
+                blurRadius: 18,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.18),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.history_rounded,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'History',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      'شاهد خطواتك اليومية بالتفصيل',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(Icons.chevron_right_rounded, color: Colors.white),
+            ],
+          ),
+        ),
       ),
     );
   }

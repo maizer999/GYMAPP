@@ -4,10 +4,28 @@ import 'package:isar_community/isar.dart';
 import '../../core/database/activity_record.dart';
 import '../../core/database/database_service.dart';
 
-class HistoryPoint {
-  const HistoryPoint({required this.date, required this.steps});
+class HistoryDay {
+  const HistoryDay({
+    required this.date,
+    required this.steps,
+    required this.distanceMeters,
+    required this.activeCalories,
+    required this.hourlySteps,
+  });
+
   final DateTime date;
   final int steps;
+  final double distanceMeters;
+  final double activeCalories;
+  final List<int> hourlySteps;
+
+  factory HistoryDay.empty(DateTime date) => HistoryDay(
+        date: date,
+        steps: 0,
+        distanceMeters: 0,
+        activeCalories: 0,
+        hourlySteps: List<int>.filled(24, 0),
+      );
 }
 
 /// Reads already-persisted ActivityRecords rather than recomputing
@@ -17,7 +35,7 @@ class HistoryController {
   HistoryController(this._isar);
   final Isar _isar;
 
-  Future<List<HistoryPoint>> lastDays(int count) async {
+  Future<List<HistoryDay>> recentDays(int count) async {
     final today = ActivityRecord.dayEpochFor(DateTime.now());
     final from = today - (count - 1);
 
@@ -28,13 +46,23 @@ class HistoryController {
 
     final byEpoch = {for (final r in records) r.dayEpoch: r};
 
-    return [
-      for (var epoch = from; epoch <= today; epoch++)
-        HistoryPoint(
-          date: ActivityRecord.dateFromEpoch(epoch),
-          steps: byEpoch[epoch]?.steps ?? 0,
-        ),
-    ];
+    final days = <HistoryDay>[];
+    for (var epoch = today; epoch >= from; epoch--) {
+      final r = byEpoch[epoch];
+      final date = ActivityRecord.dateFromEpoch(epoch);
+      days.add(
+        r == null
+            ? HistoryDay.empty(date)
+            : HistoryDay(
+                date: date,
+                steps: r.steps,
+                distanceMeters: r.distanceMeters,
+                activeCalories: r.activeCalories,
+                hourlySteps: r.hourlySteps,
+              ),
+      );
+    }
+    return days;
   }
 }
 
@@ -42,10 +70,6 @@ final historyControllerProvider = Provider<HistoryController>((ref) {
   return HistoryController(ref.watch(isarProvider));
 });
 
-final weeklyHistoryProvider = FutureProvider<List<HistoryPoint>>((ref) {
-  return ref.watch(historyControllerProvider).lastDays(7);
-});
-
-final monthlyHistoryProvider = FutureProvider<List<HistoryPoint>>((ref) {
-  return ref.watch(historyControllerProvider).lastDays(30);
+final recentDaysProvider = FutureProvider<List<HistoryDay>>((ref) {
+  return ref.watch(historyControllerProvider).recentDays(60);
 });

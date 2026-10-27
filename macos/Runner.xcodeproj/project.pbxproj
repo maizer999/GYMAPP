@@ -241,6 +241,7 @@
 				33CC110E2044A8840003C045 /* Bundle Framework */,
 				3399D490228B24CF009A79C7 /* ShellScript */,
 				E656F0877E687EF7A4C2CB48 /* [CP] Embed Pods Frameworks */,
+				A1B2C3D4E5F6789012345678 /* Strip xattrs */,
 			);
 			buildRules = (
 			);
@@ -421,6 +422,25 @@
 			shellPath = /bin/sh;
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Runner/Pods-Runner-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
+		};
+		A1B2C3D4E5F6789012345678 /* Strip xattrs */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Strip xattrs";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "/usr/bin/xattr -cr \"${CODESIGNING_FOLDER_PATH}\" || true\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
