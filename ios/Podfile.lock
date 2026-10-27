@@ -1,0 +1,46 @@
+PODS:
+  - device_info_plus (0.0.1):
+    - Flutter
+  - Flutter (1.0.0)
+  - health (13.3.2):
+    - Flutter
+  - isar_community_flutter_libs (1.0.0):
+    - Flutter
+  - pedometer (4.2.0):
+    - Flutter
+  - permission_handler_apple (9.4.8):
+    - Flutter
+
+DEPENDENCIES:
+  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
+  - Flutter (from `Flutter`)
+  - health (from `.symlinks/plugins/health/ios`)
+  - isar_community_flutter_libs (from `.symlinks/plugins/isar_community_flutter_libs/ios`)
+  - pedometer (from `.symlinks/plugins/pedometer/ios`)
+  - permission_handler_apple (from `.symlinks/plugins/permission_handler_apple/ios`)
+
+EXTERNAL SOURCES:
+  device_info_plus:
+    :path: ".symlinks/plugins/device_info_plus/ios"
+  Flutter:
+    :path: Flutter
+  health:
+    :path: ".symlinks/plugins/health/ios"
+  isar_community_flutter_libs:
+    :path: ".symlinks/plugins/isar_community_flutter_libs/ios"
+  pedometer:
+    :path: ".symlinks/plugins/pedometer/ios"
+  permission_handler_apple:
+    :path: ".symlinks/plugins/permission_handler_apple/ios"
+
+SPEC CHECKSUMS:
+  device_info_plus: 21fcca2080fbcd348be798aa36c3e5ed849eefbe
+  Flutter: cabc95a1d2626b1b06e7179b784ebcf0c0cde467
+  health: 72947bca89ee7906256d6f650db061ca4b2f92c7
+  isar_community_flutter_libs: bede843185a61a05ff364a05c9b23209523f7e0d
+  pedometer: 6806036696085739f36b4e4e5374135e86220a59
+  permission_handler_apple: 92d754bbaa7361d436db2d6c3c1c2a0fdcec462e
+
+PODFILE CHECKSUM: ca3eb0cc320eb87685e6e70b14d6a254c9a94984
+
+COCOAPODS: 1.16.2
